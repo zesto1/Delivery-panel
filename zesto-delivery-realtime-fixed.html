@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zesto — Delivery Panel</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<style>
+:root{--accent:#145A32;--dark:#0d3d22;--light:#d4e8dc;--bg:#f6f6f6;--line:#e2e8d9;--muted:#6b7280;--success:#18a957;--danger:#e11d48;--shadow:0 1px 2px rgba(10,10,10,.06),0 8px 24px rgba(10,10,10,.05)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#111;font-family:Inter,Arial,sans-serif}.wrap{max-width:740px;margin:auto;padding:0 14px 100px}.top{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px}.topin{max-width:740px;margin:auto;display:flex;align-items:center;gap:10px}.logo{width:38px;height:38px;border-radius:10px;object-fit:cover}.title{font:700 20px Poppins;color:var(--dark);margin:0}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:14px}h2,h3{font-family:Poppins;color:var(--dark)}label{display:block;font-size:13px;font-weight:600;margin:10px 0 5px}input,select,textarea{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}textarea{min-height:80px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:13px 15px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}.btn-block{width:100%}.btn-outline{background:#fff;color:#111;border:1px solid var(--line)}.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}.muted{color:var(--muted)}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:var(--light);border:1px solid var(--accent);border-radius:12px;padding:12px;text-align:center}.stat b{display:block;font:700 22px Poppins;color:var(--dark)}.stat span{font-size:11px;color:var(--muted)}.order{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#e0f2fe;color:#0284c7}.badge.picked{background:#f3e8ff;color:#7c3aed}.badge.done{background:#e6f7ee;color:#18a957}.badge.pending{background:#fff7e6;color:#d97706}.notice{padding:12px;border-radius:12px;background:var(--light);border:1px solid #b9ddc5;margin-top:12px}.notice.warn{background:#fff7e6;border-color:#ffe0a3}.notice.err{background:#fee2e2;border-color:#fecaca;color:#991b1b}.hidden{display:none!important}.tabs{display:flex;gap:8px;margin-top:14px;overflow:auto}.tabs button{flex:1;white-space:nowrap}.small{font-size:12px}.doc-preview{max-width:120px;max-height:100px;border-radius:10px;border:1px solid var(--line);margin-top:8px}
+
+/* Zesto custom dialog system: avoids browser "github.io says" dialogs */
+#zesto-dialog-overlay{position:fixed;inset:0;z-index:12000;background:rgba(8,18,14,.58);display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+#zesto-dialog-overlay.show{display:flex}
+.zesto-dialog-box{width:min(92vw,420px);background:#fff;border-radius:24px;padding:24px 22px 20px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.28);animation:zestoDialogIn .25s ease-out}
+@keyframes zestoDialogIn{from{opacity:0;transform:translateY(15px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.zesto-dialog-icon{width:68px;height:68px;border-radius:50%;margin:0 auto 14px;background:#e7f5ed;color:var(--accent,#145A32);display:grid;place-items:center;font-size:27px}
+.zesto-dialog-title{margin:0 0 8px;font-family:Poppins,Inter,sans-serif;font-size:20px;color:#173d2d}
+.zesto-dialog-text{margin:0;color:#66736d;font-size:14px;line-height:1.55;white-space:pre-line}
+.zesto-dialog-input{width:100%;margin-top:14px;padding:12px 13px;border:1px solid #d7dfda;border-radius:12px;font:inherit;display:none}
+.zesto-dialog-actions{display:flex;gap:10px;margin-top:18px}
+.zesto-dialog-actions button{flex:1;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
+#zesto-dialog-cancel{background:#fff;color:#145A32;border:1px solid #145A32;display:none}
+#zesto-dialog-ok{background:var(--accent,#145A32);color:#fff}
+
+</style>
+</head>
+<body>
+
+<div id="zesto-dialog-overlay" aria-hidden="true">
+  <div class="zesto-dialog-box" role="dialog" aria-modal="true">
+    <div class="zesto-dialog-icon"><i id="zesto-dialog-icon" class="fa-solid fa-circle-info"></i></div>
+    <h2 id="zesto-dialog-title" class="zesto-dialog-title">Zesto</h2>
+    <p id="zesto-dialog-text" class="zesto-dialog-text"></p>
+    <input id="zesto-dialog-input" class="zesto-dialog-input">
+    <div class="zesto-dialog-actions">
+      <button type="button" id="zesto-dialog-cancel">Cancel</button>
+      <button type="button" id="zesto-dialog-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<header class="top"><div class="topin"><i class="fa-solid fa-motorcycle" style="font-size:28px;color:var(--accent)"></i><h1 class="title">Zesto Delivery Panel</h1><button id="logout" class="btn btn-outline" style="margin-left:auto;display:none">Logout</button></div></header>
+<main class="wrap">
+<div id="auth"></div><div id="app" class="hidden"></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+
+function zestoDialog(mode,message,defaultValue=''){
+  const ov=document.getElementById('zesto-dialog-overlay');
+  const text=document.getElementById('zesto-dialog-text');
+  const input=document.getElementById('zesto-dialog-input');
+  const ok=document.getElementById('zesto-dialog-ok');
+  const cancel=document.getElementById('zesto-dialog-cancel');
+  const icon=document.getElementById('zesto-dialog-icon');
+  if(!ov||!text||!input||!ok||!cancel){
+    return Promise.resolve(mode==='confirm'?false:mode==='prompt'?null:undefined);
+  }
+  text.textContent=String(message??'');
+  input.style.display=mode==='prompt'?'block':'none';
+  cancel.style.display=(mode==='confirm'||mode==='prompt')?'block':'none';
+  input.value=mode==='prompt'?String(defaultValue??''):'';
+  icon.className=mode==='confirm'?'fa-solid fa-circle-question':mode==='prompt'?'fa-solid fa-pen':'fa-solid fa-circle-info';
+  ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
+  if(mode==='prompt')setTimeout(()=>{input.focus();input.select()},30);
+  return new Promise(resolve=>{
+    const finish=v=>{
+      ov.classList.remove('show');ov.setAttribute('aria-hidden','true');
+      ok.onclick=null;cancel.onclick=null;input.onkeydown=null;
+      resolve(v);
+    };
+    ok.onclick=()=>finish(mode==='prompt'?input.value:mode==='confirm'?true:undefined);
+    cancel.onclick=()=>finish(mode==='prompt'?null:false);
+    input.onkeydown=e=>{if(e.key==='Enter')ok.click();if(e.key==='Escape')cancel.click()};
+  });
+}
+function zAlert(message){return zestoDialog('alert',message)}
+function zConfirm(message){return zestoDialog('confirm',message)}
+function zPrompt(message,defaultValue=''){return zestoDialog('prompt',message,defaultValue)}
+
+/* Zesto Supabase compatibility layer — replaces Firebase Realtime Database API used by this app. */
+const SUPABASE_URL='https://dwiisxxyesqcdnmmdbiw.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_p_HcQIGBC2S6rTe1JA-Isw_MRJfmEHG';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false}});
+class ZSnapshot{constructor(v){this._v=v} val(){return this._v}}
+const zClone=v=>v==null?v:JSON.parse(JSON.stringify(v));
+const zKey=()=> 'k_'+Date.now().toString(36)+'_'+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
+class ZRef{
+ constructor(path,filter=null){this.path=String(path||'').replace(/^\/+|\/+$/g,'');this.filter=filter;this._subs=[]}
+ child(p){return new ZRef(this.path+'/'+p,this.filter)}
+ push(){return {key:zKey()}}
+ orderByChild(field){return new ZRef(this.path,{field,value:undefined})}
+ equalTo(value){return new ZRef(this.path,this.filter?{...this.filter,value}:null)}
+ _parts(){const a=this.path.split('/').filter(Boolean);return {root:a[0]||'',key:a[1]||'__root__',nested:a.slice(2)}}
+ async _row(root,key){const {data,error}=await sb.from('zesto_data').select('data,version').eq('root',root).eq('item_key',key).maybeSingle();if(error)throw error;return data}
+ async _read(){const {root,key,nested}=this._parts();if(!root)return null;
+   if(this.path.split('/').filter(Boolean).length===1){const {data,error}=await sb.from('zesto_data').select('item_key,data').eq('root',root);if(error)throw error;let out={};for(const r of data||[]){if(r.item_key==='__root__'&&r.data&&typeof r.data==='object')out={...out,...r.data};else out[r.item_key]=r.data}if(this.filter){out=Object.fromEntries(Object.entries(out).filter(([,v])=>v&&v[this.filter.field]===this.filter.value))}return out}
+   const row=await this._row(root,key);let v=row?.data??null;for(const n of nested)v=v?.[n]??null;return v}
+ async once(){return new ZSnapshot(await this._read())}
+ async set(value){const {root,key,nested}=this._parts();if(!nested.length){const {error}=await sb.from('zesto_data').upsert({root,item_key:key,data:zClone(value),updated_at:new Date().toISOString()},{onConflict:'root,item_key'});if(error)throw error;return}
+   const row=await this._row(root,key);let base=zClone(row?.data)||{};let cur=base;for(let i=0;i<nested.length-1;i++)cur=cur[nested[i]]??=( {} );cur[nested.at(-1)]=zClone(value);return new ZRef(root+'/'+key).set(base)}
+ async update(patch){const current=(await this._read())||{};return this.set({...current,...zClone(patch)})}
+ async remove(){const {root,key,nested}=this._parts();if(nested.length){const row=await this._row(root,key);let base=zClone(row?.data)||{},cur=base;for(let i=0;i<nested.length-1;i++){if(!cur[nested[i]])return;cur=cur[nested[i]]}delete cur[nested.at(-1)];return new ZRef(root+'/'+key).set(base)}const {error}=await sb.from('zesto_data').delete().eq('root',root).eq('item_key',key);if(error)throw error}
+ on(event,cb){
+  if(event!=='value')return;
+  let stopped=false,busy=false,lastJson=null;
+  const fire=async(force=false)=>{
+    if(stopped||busy)return;
+    busy=true;
+    try{
+      const value=await this._read();
+      const json=JSON.stringify(value);
+      if(force||json!==lastJson){lastJson=json;cb(new ZSnapshot(value))}
+    }catch(e){console.error('Supabase realtime sync:',e)}finally{busy=false}
+  };
+  const {root}=this._parts();
+  fire(true);
+  const ch=sb.channel('zesto_'+root+'_'+Math.random().toString(36).slice(2))
+    .on('postgres_changes',{event:'*',schema:'public',table:'zesto_data',filter:'root=eq.'+root},()=>fire())
+    .subscribe(status=>{if(status==='SUBSCRIBED')fire()});
+  // Safety net for Android/WebView/background reconnects: realtime stays primary,
+  // while this lightweight check prevents a missed socket event from requiring manual refresh.
+  const timer=setInterval(()=>fire(),2000);
+  const wake=()=>fire(true);
+  const visible=()=>{if(document.visibilityState==='visible')fire(true)};
+  window.addEventListener('online',wake);
+  window.addEventListener('focus',wake);
+  document.addEventListener('visibilitychange',visible);
+  this._subs.push({ch,stop:()=>{
+    stopped=true;clearInterval(timer);
+    window.removeEventListener('online',wake);
+    window.removeEventListener('focus',wake);
+    document.removeEventListener('visibilitychange',visible);
+  }});
+  return cb
+ }
+ off(){for(const s of this._subs){s.stop();sb.removeChannel(s.ch)}this._subs=[]}
+ async transaction(fn){const {root,key,nested}=this._parts();if(nested.length)throw new Error('Nested transaction not supported');for(let i=0;i<5;i++){const row=await this._row(root,key);const old=row?.data??null,ver=row?.version??0;const next=fn(zClone(old));if(next===undefined)return {committed:false,snapshot:new ZSnapshot(old)};const {data,error}=await sb.rpc('zesto_cas',{p_root:root,p_key:key,p_expected_version:ver,p_data:zClone(next)});if(error)throw error;if(data===true)return {committed:true,snapshot:new ZSnapshot(next)}}return {committed:false,snapshot:new ZSnapshot(await this._read())}}
+}
+const db={ref:path=>new ZRef(path)};
+const $=s=>document.querySelector(s);const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const esc=(s='')=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const toast=m=>zAlert(m);
+let session=JSON.parse(localStorage.getItem('zesto_delivery_session')||'null');let app=null,orders=[],vendors=[];let pendingDoc='';let lastAvailableKeys=new Set();let audioCtx=null;
+const appsRef=db.ref('deliveryApplications');const ordersRef=db.ref('orders');const vendorsRef=db.ref('vendors');
+async function hash(v){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}
+function showAuth(){ $('#logout').style.display='none';$('#app').classList.add('hidden');$('#auth').innerHTML=`<div class="card"><h2 style="text-align:center;margin-top:0">Delivery Boy Login</h2><p class="muted" style="text-align:center">Only admin-approved delivery partners can access deliveries.</p><form id="login"><label>Email</label><input id="le" type="email" required><label>Password</label><input id="lp" type="password" required><button class="btn btn-block" style="margin-top:14px">Login</button></form><div class="sep" style="height:1px;background:var(--line);margin:18px 0"></div><button class="btn btn-outline btn-block" id="open-register">New Delivery Boy? Register</button></div>`;$('#login').onsubmit=login;$('#open-register').onclick=showRegister}
+function showRegister(){pendingDoc='';$('#auth').innerHTML=`<div class="card"><h2 style="margin-top:0">Delivery Boy Registration</h2><p class="muted">Submit your details. Your account will remain locked until the Zesto admin approves it.</p><form id="register">
+<label>Full Name *</label><input id="rname" required><div class="row"><div style="flex:1"><label>Mobile *</label><input id="rphone" type="tel" required></div><div style="flex:1"><label>Email *</label><input id="remail" type="email" required></div></div>
+<label>Password *</label><input id="rpass" type="password" minlength="6" required><label>Date of Birth</label><input id="rdob" type="date"><label>Current Address *</label><textarea id="raddress" required></textarea>
+<div class="row"><div style="flex:1"><label>City</label><input id="rcity"></div><div style="flex:1"><label>Pincode</label><input id="rpin"></div></div>
+<label>Vehicle *</label><select id="rvehicle" required><option value="">Select...</option><option>Bike / Scooter</option><option>Bicycle</option><option>Car</option><option>No Vehicle</option></select>
+<label>ID Card / Document Type *</label><select id="ridtype" required><option value="">Select...</option><option>Aadhaar Card</option><option>Driving License</option><option>Voter ID</option><option>PAN Card</option><option>Other Government ID</option></select>
+<label>ID Card / Document Number *</label><input id="ridnumber" required><label>Driving License Number</label><input id="rlicense"><label>Previous Experience</label><textarea id="rexp"></textarea>
+<label>Availability</label><select id="ravail"><option>Full Time</option><option>Part Time</option><option>Weekends Only</option></select>
+<label>Upload ID Card / Document (optional)</label><input id="rdoc" type="file" accept="image/*"><img id="docpreview" class="doc-preview hidden"><div class="notice small">Your application will be reviewed by the admin before you can log in and receive orders.</div>
+<button class="btn btn-success btn-block" style="margin-top:14px">Submit Application</button></form><button class="btn btn-outline btn-block" id="back-login" style="margin-top:8px">Back to Login</button></div>`;$('#back-login').onclick=showAuth;$('#rdoc').onchange=async e=>{const f=e.target.files[0];if(!f)return;pendingDoc=await fileData(f);$('#docpreview').src=pendingDoc;$('#docpreview').classList.remove('hidden')};$('#register').onsubmit=register}
+function fileData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)})}
+async function register(e){e.preventDefault();const email=$('#remail').value.trim().toLowerCase();const existing=Object.values((await appsRef.once('value')).val()||{}).find(a=>(a.email||'').toLowerCase()===email);if(existing&&existing.status!=='Rejected'){toast('An application already exists for this email.');return}const passwordHash=await hash($('#rpass').value);const key=appsRef.push().key;const data={firebaseKey:key,name:$('#rname').value.trim(),phone:$('#rphone').value.trim(),email,dob:$('#rdob').value,address:$('#raddress').value.trim(),city:$('#rcity').value.trim(),pincode:$('#rpin').value.trim(),vehicle:$('#rvehicle').value,idType:$('#ridtype').value,idNumber:$('#ridnumber').value.trim(),license:$('#rlicense').value.trim(),experience:$('#rexp').value.trim(),availability:$('#ravail').value,passwordHash,documentImage:pendingDoc,status:'Pending',createdAt:Date.now()};await appsRef.child(key).set(data);toast('Application submitted. Please wait for admin approval.');showAuth()}
+async function login(e){e.preventDefault();const email=$('#le').value.trim().toLowerCase();const passwordHash=await hash($('#lp').value);const vals=Object.values((await appsRef.once('value')).val()||{});const found=vals.find(a=>(a.email||'').toLowerCase()===email&&a.passwordHash===passwordHash);if(!found){toast('Invalid email or password.');return}if(found.status!=='Approved'){toast(found.status==='Pending'?'Your application is still pending admin approval.':'Your application was rejected by admin.');return}session={email:found.email};localStorage.setItem('zesto_delivery_session',JSON.stringify(session));loadApp()}
+function logout(){localStorage.removeItem('zesto_delivery_session');session=null;app=null;showAuth()}
+$('#logout').onclick=logout;
+appsRef.on('value',()=>{if(session)loadApp()});ordersRef.on('value',s=>{
+  const raw=s.val()||{};
+  orders=Object.entries(raw).map(([key,o])=>({...o,firebaseKey:o.firebaseKey||key}));
+  if(session){ringForNewOrders();renderDashboard()}
+});
+vendorsRef.on('value',s=>{
+  const raw=s.val()||{};
+  vendors=Object.entries(raw).map(([key,v])=>({...v,firebaseKey:v.firebaseKey||key}));
+  if(session&&app)renderDashboard();
+});
+
+function ensureAudio(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return true}catch(e){return false}}
+document.addEventListener('pointerdown',()=>{ensureAudio()},{passive:true});
+function playNewOrderTone(){if(!ensureAudio()||!audioCtx)return;try{const now=audioCtx.currentTime;[0,0.28,0.56,0.84].forEach((t,i)=>{const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=[660,880,660,880][i];gain.gain.setValueAtTime(0.0001,now+t);gain.gain.exponentialRampToValueAtTime(0.28,now+t+0.03);gain.gain.exponentialRampToValueAtTime(0.0001,now+t+0.22);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(now+t);osc.stop(now+t+0.24)})}catch(e){}}
+function ringForNewOrders(){if(!app||app.status!=='Approved'||app.workStatus!=='Active')return;const available=orders.filter(o=>o.vendorAcceptedAt&&!o.deliveryBoy&&!['Cancelled','Delivered'].includes(o.status)&&['Vendor Accepted','Preparing','Ready for Pickup'].includes(o.vendorStatus));const keys=new Set(available.map(o=>o.firebaseKey||o.orderId));if(lastAvailableKeys.size){let isNew=false;keys.forEach(k=>{if(!lastAvailableKeys.has(k))isNew=true});if(isNew)playNewOrderTone()}lastAvailableKeys=keys}
+async function loadApp(){if(!session)return showAuth();const vals=Object.values((await appsRef.once('value')).val()||{});app=vals.find(a=>(a.email||'').toLowerCase()===session.email.toLowerCase());if(!app||app.status!=='Approved'){logout();return}$('#auth').innerHTML='';$('#app').classList.remove('hidden');$('#logout').style.display='inline-flex';renderDashboard()}
+function renderDashboard(){if(!app)return;const mine=orders.filter(o=>o.deliveryBoy&&o.deliveryBoy.email&&o.deliveryBoy.email.toLowerCase()===app.email.toLowerCase()).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));const accepted=mine.filter(o=>o.deliveryStatus==='Accepted').length,picked=mine.filter(o=>o.deliveryStatus==='Picked Up').length,delivered=mine.filter(o=>o.deliveryStatus==='Delivered').length;const available=app.workStatus==='Active'?orders.filter(o=>o.vendorAcceptedAt&&!o.deliveryBoy&&!['Cancelled','Delivered'].includes(o.status)&&['Vendor Accepted','Preparing','Ready for Pickup'].includes(o.vendorStatus)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)):[].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));const myActive=mine.filter(o=>o.deliveryStatus!=='Delivered'&&o.deliveryStatus!=='Cancelled');$('#app').innerHTML=`<div class="card"><div class="row"><div><h2 style="margin:0">Welcome, ${esc(app.name)}</h2><div class="muted small">${esc(app.email)} · ${esc(app.phone)}</div></div><i class="fa-solid fa-circle-check" style="font-size:28px;color:var(--success)"></i></div><div class="notice"><b>Approved Delivery Partner</b><br><span class="small">${esc(app.vehicle||'Vehicle')} · ${esc(app.city||'')}</span></div>${app.workStatus==='Active'?'<div class="notice" style="background:#e6f7ee;border-color:#9bd7b2"><b>🟢 Duty Active</b><br><span class="small">New customer orders will appear here automatically.</span></div>':'<div class="notice warn"><b>🔴 Duty Inactive</b><br><span class="small">Admin has turned your delivery duty off. New orders are paused.</span></div>'}</div><div class="grid"><div class="stat"><b>${accepted}</b><span>Accepted</span></div><div class="stat"><b>${picked}</b><span>Picked Up</span></div><div class="stat"><b>${delivered}</b><span>Delivered</span></div><div class="stat"><b>${mine.length}</b><span>Total Orders</span></div></div><div class="card"><h3 style="margin-top:0">New Orders (${available.length})</h3><div class="notice warn small"><b>Important:</b> New customer orders are sent here automatically while your delivery duty is Active. Accept the order, then call the customer if you need to confirm details.</div>${available.length?available.map(orderHtml).join(''):'<div class="muted" style="margin-top:10px">No new orders available right now.</div>'}</div><div class="card"><h3 style="margin-top:0">My Orders (${myActive.length})</h3>${myActive.length?myActive.map(orderHtml).join(''):'<div class="muted">You have not accepted any order yet.</div>'}</div>`}
+
+function getOrderVendorProfile(o){
+  const id=o.vendorId||o.vendor?.id||'';
+  const email=String(o.vendor?.email||'').toLowerCase();
+  const found=vendors.find(v=>
+    (id && (v.firebaseKey===id || v.id===id)) ||
+    (email && String(v.email||'').toLowerCase()===email)
+  );
+  return found||o.vendor||{};
+}
+
+function mapsSearchUrl(text){
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(String(text||''));
+}
+
+function orderHtml(o){
+  const isMine=!!(o.deliveryBoy&&o.deliveryBoy.email&&o.deliveryBoy.email.toLowerCase()===app.email.toLowerCase());
+  const st=isMine?(o.deliveryStatus||'Accepted'):'New';
+  const cls=st==='Delivered'?'done':st==='Picked Up'?'picked':st==='Accepted'?'':'pending';
+
+  const vp=getOrderVendorProfile(o);
+  const restaurantName=o.vendorName||o.vendor?.name||vp.name||'Restaurant';
+  const restaurantPhone=o.vendor?.phone||vp.phone||'';
+  const restaurantAddress=[
+    o.vendor?.address||vp.address||'',
+    o.vendor?.city||vp.city||'',
+    vp.pincode||''
+  ].filter(Boolean).join(', ');
+  const restaurantLat=Number(vp.currentLocation?.lat||vp.registrationLocation?.lat||0);
+  const restaurantLng=Number(vp.currentLocation?.lng||vp.registrationLocation?.lng||0);
+  const restaurantMapsUrl=restaurantLat&&restaurantLng
+    ?`https://www.google.com/maps/dir/?api=1&destination=${restaurantLat},${restaurantLng}`
+    :mapsSearchUrl(restaurantAddress||restaurantName);
+
+  const customerAddress=[
+    o.customer?.address||'',
+    o.customer?.city||'',
+    o.customer?.pincode||''
+  ].filter(Boolean).join(', ');
+  const customerMapsUrl=o.deliveryLocation?.lat&&o.deliveryLocation?.lng
+    ?`https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLocation.lat},${o.deliveryLocation.lng}`
+    :mapsSearchUrl(customerAddress);
+
+  return `<div class="order">
+    <div class="row">
+      <b>#${esc(o.orderId)}</b>
+      <span class="badge ${cls}">${esc(st)}</span>
+    </div>
+
+    <div style="margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:#f8fbf9">
+      <div style="font-weight:800;color:var(--dark);font-size:15px;margin-bottom:8px">
+        <i class="fa-solid fa-user" style="color:var(--accent)"></i> Customer Details
+      </div>
+      <div style="font-weight:800">${esc(o.customer?.name||'Customer')}</div>
+      <div class="muted small" style="margin-top:5px">
+        <i class="fa-solid fa-phone"></i> Customer Phone: ${esc(o.customer?.phone||'—')}
+      </div>
+      <div class="muted small" style="margin-top:5px">
+        <i class="fa-solid fa-location-dot"></i> Customer Location: ${esc(customerAddress||'Location not available')}
+      </div>
+      <div class="actions" style="margin-top:10px">
+        ${o.customer?.phone?`<a class="btn btn-outline" href="tel:${esc(o.customer.phone)}"><i class="fa-solid fa-phone"></i> Call Customer</a>`:''}
+        ${customerAddress||o.deliveryLocation?`<a class="btn btn-outline" target="_blank" href="${customerMapsUrl}"><i class="fa-solid fa-map-location-dot"></i> Customer Map</a>`:''}
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:14px;background:#fffaf0">
+      <div style="font-weight:800;color:var(--dark);font-size:15px;margin-bottom:8px">
+        <i class="fa-solid fa-store" style="color:#a86b00"></i> Restaurant Details
+      </div>
+      <div style="font-weight:800">${esc(restaurantName)}</div>
+      <div class="muted small" style="margin-top:5px">
+        <i class="fa-solid fa-phone"></i> Restaurant Phone: ${esc(restaurantPhone||'—')}
+      </div>
+      <div class="muted small" style="margin-top:5px">
+        <i class="fa-solid fa-location-dot"></i> Restaurant Location: ${esc(restaurantAddress||'Location not available')}
+      </div>
+      <div class="muted small" style="margin-top:5px">
+        <i class="fa-solid fa-kitchen-set"></i> Restaurant Status: ${esc(o.vendorStatus||'Pending')}
+      </div>
+      <div class="actions" style="margin-top:10px">
+        ${restaurantPhone?`<a class="btn btn-outline" href="tel:${esc(restaurantPhone)}"><i class="fa-solid fa-phone"></i> Call Restaurant</a>`:''}
+        ${restaurantAddress||restaurantLat?`<a class="btn btn-outline" target="_blank" href="${restaurantMapsUrl}"><i class="fa-solid fa-map-location-dot"></i> Restaurant Map</a>`:''}
+      </div>
+    </div>
+
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line)">
+      <div class="small"><b>🛒 Items:</b> ${esc((o.items||[]).map(i=>(i.name||'Product')+' × '+(i.qty||1)).join(', ')||'—')}</div>
+      <div class="small" style="margin-top:7px"><b>💰 Customer Order Total:</b> ${money(o.total||o.grandTotal||o.amount||0)}</div>
+      <div class="small" style="margin-top:7px"><b>💳 Payment:</b> <span style="font-weight:700">${o.paymentMethod==='online'?'ONLINE / UPI':'CASH ON DELIVERY'}</span> · <span>${o.paymentStatus==='paid'?'Confirmed':o.paymentStatus==='pending'?'Verification Pending':o.paymentStatus==='processing'?'Processing':o.paymentStatus==='not_required'?'COD':'Pending'}</span></div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <b style="color:var(--dark)">💵 Delivery Payout: ${money(o.deliveryPayout||0)}</b>
+      ${!isMine&&app.workStatus==='Active'&&!o.deliveryBoy?`<button class="btn btn-success" onclick="acceptOrder('${o.firebaseKey}')"><i class="fa-solid fa-check"></i> Accept Pickup</button>`:
+      isMine&&o.deliveryStatus==='Accepted'&&o.vendorStatus!=='Ready for Pickup'?`<span class="badge warn">Waiting for Restaurant to Mark Ready</span>`:
+      isMine&&o.deliveryStatus==='Accepted'&&o.vendorStatus==='Ready for Pickup'?`<button class="btn" onclick="updateOrder('${o.firebaseKey}','Picked Up')">Picked Up</button>`:
+      isMine&&o.deliveryStatus==='Picked Up'?`<button class="btn btn-success" onclick="updateOrder('${o.firebaseKey}','Delivered')">Delivered</button>`:''}
+    </div>
+  </div>`;
+}
+async function acceptOrder(key){
+  if(!app)return;
+  const ref=db.ref('orders/'+key);
+  const result=await ref.transaction(o=>{
+    if(!o||o.deliveryBoy||['Cancelled','Delivered'].includes(o.status))return;
+    if(!o.vendorAcceptedAt)return;
+    if(!['Vendor Accepted','Preparing','Ready for Pickup'].includes(o.vendorStatus))return;
+    if(o.deliveryOfferStatus && o.deliveryOfferStatus!=='Available')return;
+
+    o.deliveryBoy={name:app.name,phone:app.phone,email:app.email,vehicle:app.vehicle};
+    o.deliveryStatus='Accepted';
+    o.deliveryOfferStatus='Accepted';
+    o.deliveryAcceptedAt=Date.now();
+    return o;
+  });
+  if(result.committed){
+    toast('Order accepted successfully.');
+    renderDashboard();
+  }else{
+    toast('This order is not ready for delivery assignment or has already been accepted.');
+  }
+}
+async function updateOrder(key,status){
+  const snap=await db.ref('orders/'+key).once('value');const o=snap.val();
+  if(!o||!o.deliveryBoy||o.deliveryBoy.email.toLowerCase()!==app.email.toLowerCase()){toast('This order is not assigned to you.');return}
+  if(status==='Picked Up' && o.vendorStatus!=='Ready for Pickup'){toast('Restaurant has not marked this order Ready yet.');return}
+  const updates={deliveryStatus:status};
+  if(status==='Picked Up'){updates.status='Out for Delivery';updates.deliveryOfferStatus='Picked Up';updates.pickedUpAt=Date.now();}
+  if(status==='Delivered'){updates.status='Delivered';updates.deliveryOfferStatus='Completed';updates.deliveredAt=Date.now();}
+  await db.ref('orders/'+key).update(updates);toast('Order updated.');
+}
+if(session)loadApp();else showAuth();
+</script>
+</body></html>
